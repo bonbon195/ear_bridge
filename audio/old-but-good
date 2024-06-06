@@ -1,0 +1,113 @@
+package audio
+
+func resample(input []byte, oldSampleRate, newSampleRate uint32, inputBitDepth int, outputBitDepth int) []byte {
+	if oldSampleRate == newSampleRate && inputBitDepth == outputBitDepth {
+		return input
+	}
+	return resampleLerp(input, oldSampleRate, newSampleRate, inputBitDepth, outputBitDepth)
+}
+
+func resampleLerp(input []byte, inputSampleRate, outputSampleRate uint32, inputBitDepth int, outputBitDepth int) []byte {
+
+	var bitDepthRatio = float64(outputBitDepth) / float64(inputBitDepth)
+	inputBytesPerSample := inputBitDepth / 8
+	outputBytesPerSample := outputBitDepth / 8
+
+	var sampleRateRatio = float64(outputSampleRate) / float64(inputSampleRate)
+	output := make([]byte, int(float64(len(input))*bitDepthRatio*sampleRateRatio))
+
+	if inputSampleRate == outputSampleRate && inputBitDepth == outputBitDepth {
+		copy(output, input)
+		return output
+	}
+
+	if inputSampleRate == outputSampleRate && inputBitDepth != outputBitDepth {
+		for i := 0; i < len(input); i += inputBytesPerSample {
+			var sample int
+			if inputBitDepth < outputBitDepth {
+				for j := 0; j < inputBytesPerSample; j++ {
+					sample = sample | int(input[i+j])<<(8*j)
+				}
+
+				sample = sample << (outputBitDepth - inputBitDepth)
+
+				for j := 0; j < outputBytesPerSample; j++ {
+					output[i*outputBytesPerSample/inputBytesPerSample+j] = byte(sample >> (8 * j))
+				}
+
+			} else if inputBitDepth > outputBitDepth {
+				for j := 0; j < inputBytesPerSample; j++ {
+					sample = sample | int(input[i+j])<<(8*j)
+				}
+				sample = sample >> (inputBitDepth - outputBitDepth)
+				for j := outputBytesPerSample - 1; j >= 0; j-- {
+					output[i*outputBytesPerSample/inputBytesPerSample+j] = byte(sample >> (8 * j))
+				}
+			}
+		}
+		return output
+	}
+	if inputSampleRate != outputSampleRate && inputBitDepth < outputBitDepth {
+		for i := 0; i < len(output); i += outputBytesPerSample {
+			idxD := float64(i/outputBytesPerSample) / sampleRateRatio
+			a := int(idxD) * inputBytesPerSample
+			b := a + inputBytesPerSample
+
+			var sampleA int
+			for j := 0; j < inputBytesPerSample; j++ {
+				sampleA = sampleA | int(input[a+j])<<(8*j)
+			}
+
+			if b >= len(input) {
+				sampleA = sampleA << 8
+				for j := 0; j < outputBytesPerSample; j++ {
+					output[i] = byte(sampleA >> 8 * j)
+				}
+				continue
+			}
+
+			// need to keep track of the sign
+			sampleA = sampleToSignedInt(sampleA, inputBytesPerSample)
+
+			var sampleB int
+			for j := 0; j < inputBytesPerSample; j++ {
+				sampleB = sampleB | int(input[b+j])<<(8*j)
+			}
+
+			sampleB = sampleToSignedInt(sampleB, inputBytesPerSample)
+
+			bCF := idxD - float64(a/2)
+			aCF := 1.0 - bCF
+			// Linear interpolation
+			resA := aCF*float64(sampleA) + bCF*float64(sampleB)
+
+			resB := int(resA) << (outputBitDepth - inputBitDepth)
+			for j := 0; j < outputBytesPerSample; j++ {
+				output[i+j] = byte(resB >> (8 * j))
+			}
+		}
+		return output
+	}
+
+	return output
+}
+
+func sampleToSignedInt(sample int, bytesPerSample int) int {
+
+	// Interpret sample as a signed integer
+	switch bytesPerSample {
+	case 1:
+		sample = int(int8(sample))
+	case 2:
+		sample = int(int16(sample))
+	case 3:
+		// For 24-bit audio, the sign bit is in the third byte
+		if (sample & 0x00800000) != 0 {
+			sample |= 0xFF000000 // Extend sign bit to 32 bits
+		}
+		sample = int(int32(sample))
+	case 4:
+		sample = int(int32(sample))
+	}
+	return sample
+}
