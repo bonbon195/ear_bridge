@@ -275,9 +275,9 @@ func updateDevicesList(ctx *malgo.AllocatedContext) {
 
 			device := audio.Device{Id: v.ID, Name: v.Name(), Type: malgo.Playback}
 			allDevices = append(allDevices, device)
-			if v.IsDefault == 1 {
-				sourceDevices = append(sourceDevices, ui.DeviceListItem{Id: v.ID, Name: v.Name(), Button: &widget.Clickable{}})
-			}
+			// if v.IsDefault == 1 {
+			sourceDevices = append(sourceDevices, ui.DeviceListItem{Id: v.ID, Name: v.Name(), Button: &widget.Clickable{}})
+			// }
 		}
 		mutex.Unlock()
 		w.Done()

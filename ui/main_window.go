@@ -2,7 +2,6 @@ package ui
 
 import (
 	"image/color"
-	"log"
 
 	"gio.tools/icons"
 	"gioui.org/io/pointer"
@@ -104,7 +103,6 @@ func MainWindowLayout(gtx layout.Context, th *material.Theme, sourceDeviceList *
 							iconButton := material.IconButton(th, updateDevicesButton, icons.NavigationRefresh, "")
 							iconButton.Inset = layout.UniformInset(8)
 							if updateDevicesButton.Clicked(gtx) {
-								log.Println("ASd")
 								bell.Ring("update_devices_list", nil)
 							}
 							inset := layout.Inset{Left: 4}.Layout(gtx, iconButton.Layout)

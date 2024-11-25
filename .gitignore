@@ -1,0 +1,4 @@
+*.syso
+*.aar
+*.exe
+build/**
