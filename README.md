@@ -1,14 +1,20 @@
-# EarBridge
-Победитель выставки "Белый шум" 2024
-## О программе
-Это программа для прослушивания аудио на нескольких наушниках одновременно. Написана на языке [Go](https://go.dev/) с использованием библиотеки [Gio](https://gioui.org/) для создания интерфейса. Для работы с аудиоустройствами использует [malgo](https://github.com/gen2brain/malgo).
+[На русском](README_ru.md)
 
-## Как скомпилировать
+# EarBridge
+
+Winner of the "White Noise" exhibition 2024 in Sverdlovsk Oblast
+
+## About the Program
+
+This is a program for listening to audio on multiple headphones simultaneously. Written in Go, it uses the Gio for a GUI. For working with audio devices, it uses [malgo](https://github.com/gen2brain/malgo).
+
+## How to Build
 
 ### Windows
-В Powershell запустите скрипт командой `./scripts/build.ps1`
+Run the script in Powershell with the command `./scripts/build.ps1`
 
-### Остальные платформы
-1. Установите [Go](https://go.dev/)
-2. Установите gogio командой `go install gioui.org/cmd/gogio@latest`
-3. Скомпилируйте командой `gogio -target <ваша_ОС> -o build/<название_файла> .`
+### Other Platforms
+1. Install [Go](https://go.dev/)
+2. Install gogio with `go install gioui.org/cmd/gogio@latest`
+3. Compile with `gogio -target <your_OS> -o build/<filename> .`
+
