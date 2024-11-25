@@ -58,9 +58,6 @@ func (d *Device) InitCaptureCallbacks() {
 			if framecount == 0 {
 				return
 			}
-			// for _, v := range CurrentReceiverDevices {
-			// 	go func(v *Device) { v.ReceiverChannel <- pInputSamples }(v)
-			// }
 			d.CapturedSamples = pInputSamples
 		},
 		Stop: func() {},
@@ -83,12 +80,6 @@ func (d *Device) InitReceiverCallbacks(sourceDevice *Device) {
 			if sourceDevice.CapturedSamples != nil && len(sourceDevice.CapturedSamples) > 0 {
 				copy(pOutputSample, sourceDevice.CapturedSamples)
 			}
-			// select {
-			// case data := <-d.ReceiverChannel:
-			// 	copy(pOutputSample, data)
-			// default:
-			// }
-
 		},
 	}
 }
@@ -110,8 +101,4 @@ func setConfigOpts(config *malgo.DeviceConfig) {
 	config.SampleRate = 44100
 	config.Capture.Format = malgo.FormatS16
 	config.Playback.Format = malgo.FormatS16
-	// config.SampleRate = 192000
-	// config.Capture.Format = malgo.FormatS24
-	// config.Playback.Format = malgo.FormatS24
-	// config.Resampling.Algorithm = malgo.ResampleAlgorithmSpeex
 }

@@ -122,7 +122,6 @@ func resampleTest(input []byte, inputSampleRate, outputSampleRate uint32, inputB
 				continue
 			}
 
-			// need to keep track of the sign
 			sampleA = sampleToSignedInt(sampleA, inputBytesPerSample)
 
 			var sampleB int
@@ -134,7 +133,7 @@ func resampleTest(input []byte, inputSampleRate, outputSampleRate uint32, inputB
 
 			bCF := idxD - float64(a/2)
 			aCF := 1.0 - bCF
-			// Linear interpolation
+
 			resA := aCF*float64(sampleA) + bCF*float64(sampleB)
 
 			resB := int(resA) >> (inputBitDepth - outputBitDepth)
@@ -255,10 +254,9 @@ func resampleLerp(input []byte, inputSampleRate, outputSampleRate uint32, inputB
 
 			bCF := idxD - float64(a/outputBytesPerSample)
 			aCF := 1.0 - bCF
-			// Linear interpolation
+
 			resA := aCF*float64(sample) + bCF*float64(nextSample)
 
-			// Write to output
 			for j := outputBytesPerSample - 1; j >= 0; j-- {
 				output[a+j] = byte(int(resA) >> (8 * j))
 			}
@@ -272,13 +270,12 @@ func resampleLerp(input []byte, inputSampleRate, outputSampleRate uint32, inputB
 			a := int(idxD) * 3
 			b := a + 3
 
-			// Read and convert input samples
 			var sampleA int
 			sampleA = sampleA | int(input[a]) | int(input[a+1])<<8 | int(input[a+2])<<16
 			sampleA = sampleToSignedInt(sampleA, 3)
 
 			if b >= len(input) {
-				// If b is out of range, write sampleA to output and continue
+
 				sampleA = sampleToSignedInt(sampleA, 3)
 				output[i] = byte(sampleA)
 				output[i+1] = byte(sampleA >> 8)
@@ -289,16 +286,13 @@ func resampleLerp(input []byte, inputSampleRate, outputSampleRate uint32, inputB
 			sampleB = sampleB | int(input[b]) | int(input[b+1])<<8 | int(input[b+2])<<16
 			sampleB = sampleToSignedInt(sampleB, 3)
 
-			// Calculate coefficients for linear interpolation
 			bCF := idxD - float64(a/3)
 			aCF := 1.0 - bCF
 
-			// Perform linear interpolation
 			resA := aCF*float64(sampleA) + bCF*float64(sampleB)
-			// Reduce bit depth
+
 			resB := sampleToSignedInt(int(resA), 3) >> 8
 
-			// Write to output
 			output[i] = byte(resB >> 16)
 			output[i+1] = byte(resB >> 8)
 		}
@@ -310,7 +304,6 @@ func resampleLerp(input []byte, inputSampleRate, outputSampleRate uint32, inputB
 // Перевод из int8, 16, 24, 32 с учётом знака
 func sampleToSignedInt(sample int, bytesPerSample int) int {
 
-	// Interpret sample as a signed integer
 	switch bytesPerSample {
 	case 1:
 		sample = int(int8(sample))
@@ -318,9 +311,9 @@ func sampleToSignedInt(sample int, bytesPerSample int) int {
 		sample = int(int16(sample))
 	case 3:
 		// For 24-bit audio, the sign bit is in the third byte
-		if (sample & 0x00800000) != 0 {
-			sample |= 0xFF000000 // Extend sign bit to 32 bits
-		}
+		// if (sample & int(0x00800000)) != 0 {
+		// 	sample |= int(uint(0xFF000000)) // Extend sign bit to 32 bits
+		// }
 		sample = int(int32(sample))
 	case 4:
 		sample = int(int32(sample))
